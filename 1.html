@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Кликер с фоном</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('1.jpeg');
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        .clicker-container {
+            text-align: center;
+        }
+        
+        .clicker-button {
+            width: 200px;
+            height: 200px;
+            border: none;
+            background: url('2.jpeg') no-repeat center;
+            background-size: contain;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .clicker-button:active {
+            transform: scale(0.95);
+        }
+        
+        .counter {
+            margin-top: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 1px 1px 3px black;
+        }
+    </style>
+</head>
+<body>
+    <div class="clicker-container">
+        <button class="clicker-button" id="clickButton"></button>
+        <div class="counter">Кликов: <span id="counter">0</span></div>
+    </div>
+
+    <script>
+        let count = 0;
+        const counterElement = document.getElementById('counter');
+        const clickButton = document.getElementById('clickButton');
+        
+        clickButton.addEventListener('click', function() {
+            count++;
+            counterElement.textContent = count;
+            
+            // Отправка данных на сервер (если нужно)
+            // fetch('/increment', { method: 'POST' });
+            
+            // Анимация нажатия
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
