@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ограниченный кликер</title>
+    <title>Кликер с отправкой результатов</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -27,12 +27,16 @@
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: visible;
         }
         
         .timer {
             font-size: 28px;
             color: white;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
         }
         
         .clicker-button {
@@ -44,12 +48,16 @@
             cursor: pointer;
             transition: transform 0.1s;
             outline: none;
+            position: relative;
+            z-index: 5;
         }
         
         .counter {
             margin-top: 20px;
             font-size: 24px;
             color: white;
+            position: relative;
+            z-index: 10;
         }
         
         .message {
@@ -57,6 +65,8 @@
             color: gold;
             margin-top: 15px;
             min-height: 30px;
+            position: relative;
+            z-index: 10;
         }
     </style>
 </head>
@@ -91,6 +101,9 @@
                 clickButton.style.opacity = '0.5';
                 clickButton.style.cursor = 'not-allowed';
                 messageElement.textContent = `Игра окончена! Ваш результат: ${count} кликов`;
+                
+                // Отправка результатов на сервер
+                sendResultsToServer(count);
             }
         }, 1000);
 
@@ -101,8 +114,8 @@
             count++;
             counterElement.textContent = count;
             
-            // Увеличиваем кнопку на 5px с каждым кликом (но не более 250px)
-            buttonSize = Math.min(buttonSize + 2, 250);
+            // Увеличиваем кнопку с каждым кликом
+            buttonSize += 10;
             this.style.width = `${buttonSize}px`;
             this.style.height = `${buttonSize}px`;
             
@@ -113,10 +126,40 @@
             }, 100);
         });
 
-        // Блокировка масштабирования на мобильных устройствах
+        // Функция отправки результатов на сервер
+        function sendResultsToServer(score) {
+            fetch('/save_score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    score: score,
+                    userId: 'user123', // Можно получить из Telegram WebApp
+                    timestamp: new Date().toISOString()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Результат сохранен:', data);
+                messageElement.textContent += " Результат отправлен!";
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                messageElement.textContent += " Ошибка отправки.";
+            });
+        }
+
+        // Блокировка масштабирования
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
