@@ -80,7 +80,7 @@
 
     <script>
         let count = 0;
-        let timeLeft = 60;
+        let timeLeft = 20;
         let gameActive = true;
         let buttonSize = 150;
         const counterElement = document.getElementById('counter');
@@ -115,7 +115,7 @@
             counterElement.textContent = count;
             
             // Увеличиваем кнопку с каждым кликом
-            buttonSize += 3;
+            buttonSize += Math.min(buttonSize + 2,500);;
             this.style.width = `${buttonSize}px`;
             this.style.height = `${buttonSize}px`;
             
