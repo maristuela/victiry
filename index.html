@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Кликер с фоном</title>
+    <title>Ограниченный кликер</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
@@ -15,57 +16,106 @@
             background-size: cover;
             background-position: center;
             font-family: Arial, sans-serif;
+            touch-action: manipulation;
+            overflow: hidden;
+            user-select: none;
         }
         
-        .clicker-container {
+        .game-container {
             text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .timer {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 20px;
         }
         
         .clicker-button {
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             border: none;
             background: url('2.jpeg') no-repeat center;
             background-size: contain;
             cursor: pointer;
             transition: transform 0.1s;
-        }
-        
-        .clicker-button:active {
-            transform: scale(0.95);
+            outline: none;
         }
         
         .counter {
             margin-top: 20px;
             font-size: 24px;
             color: white;
-            text-shadow: 1px 1px 3px black;
+        }
+        
+        .message {
+            font-size: 22px;
+            color: gold;
+            margin-top: 15px;
+            min-height: 30px;
         }
     </style>
 </head>
 <body>
-    <div class="clicker-container">
+    <div class="game-container">
+        <div class="timer" id="timer">01:00</div>
         <button class="clicker-button" id="clickButton"></button>
         <div class="counter">Кликов: <span id="counter">0</span></div>
+        <div class="message" id="message"></div>
     </div>
 
     <script>
         let count = 0;
+        let timeLeft = 60;
+        let gameActive = true;
+        let buttonSize = 150;
         const counterElement = document.getElementById('counter');
         const clickButton = document.getElementById('clickButton');
-        
+        const timerElement = document.getElementById('timer');
+        const messageElement = document.getElementById('message');
+
+        // Таймер обратного отсчета
+        const timer = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                gameActive = false;
+                clickButton.style.opacity = '0.5';
+                clickButton.style.cursor = 'not-allowed';
+                messageElement.textContent = `Игра окончена! Ваш результат: ${count} кликов`;
+            }
+        }, 1000);
+
+        // Обработчик клика
         clickButton.addEventListener('click', function() {
+            if (!gameActive) return;
+            
             count++;
             counterElement.textContent = count;
             
-            // Отправка данных на сервер (если нужно)
-            // fetch('/increment', { method: 'POST' });
+            // Увеличиваем кнопку на 5px с каждым кликом (но не более 250px)
+            buttonSize = Math.min(buttonSize + 2, 250);
+            this.style.width = `${buttonSize}px`;
+            this.style.height = `${buttonSize}px`;
             
             // Анимация нажатия
             this.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 this.style.transform = 'scale(1)';
             }, 100);
+        });
+
+        // Блокировка масштабирования на мобильных устройствах
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
         });
     </script>
 </body>
