@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Кликер с отправкой результатов</title>
+    <title>Telegram Clicker Game</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <style>
         body {
             margin: 0;
@@ -69,6 +70,7 @@
             z-index: 10;
         }
     </style>
+     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -79,10 +81,22 @@
     </div>
 
     <script>
+        // Получаем user_id из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('user_id');
+        
+        // Если открыто через Telegram WebApp, пробуем получить данные из Telegram
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.expand(); // Раскрываем WebApp на весь экран
+            userId = Telegram.WebApp.initDataUnsafe.user?.id || userId;
+        }
+
         let count = 0;
-        let timeLeft = 20;
+        let timeLeft = 15;
         let gameActive = true;
-        let buttonSize = 150;
+        
+        
+        let buttonSize = 100;
         const counterElement = document.getElementById('counter');
         const clickButton = document.getElementById('clickButton');
         const timerElement = document.getElementById('timer');
@@ -126,30 +140,46 @@
             }, 100);
         });
 
-        // Функция отправки результатов на сервер
+         // Модифицированная функция отправки результатов
         function sendResultsToServer(score) {
+            if (!userId) {
+                console.error("User ID не определён");
+                return;
+            }
+            
             fetch('/save_score', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    user_id: userId,
                     score: score,
-                    userId: 'user123', // Можно получить из Telegram WebApp
                     timestamp: new Date().toISOString()
                 })
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Результат сохранен:', data);
-                messageElement.textContent += " Результат отправлен!";
+                console.log('Результат сохранён:', data);
+                
+                // Если открыто в Telegram, можно закрыть WebApp
+                if (window.Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.sendData(JSON.stringify({
+                        action: 'game_over',
+                        score: score
+                    }));
+                    
+                    // Или показать кнопку "Закрыть"
+                    Telegram.WebApp.MainButton
+                        .setText("Закрыть игру")
+                        .show()
+                        .onClick(() => Telegram.WebApp.close());
+                }
             })
             .catch(error => {
                 console.error('Ошибка:', error);
-                messageElement.textContent += " Ошибка отправки.";
             });
         }
-
         // Блокировка масштабирования
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
